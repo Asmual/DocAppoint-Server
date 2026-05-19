@@ -1,7 +1,7 @@
 echo "# Assignment-9-Server" >> README.md
 git init
 git add .
-git commit -m "first commit"
+git commit -m "mongodb connection done folder structure done"
 git branch -M main
 git remote add origin https://github.com/Asmual/Assignment-9-Server.git
 git push -u origin main
