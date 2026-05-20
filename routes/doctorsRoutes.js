@@ -1,9 +1,10 @@
 const express = require("express");
+const { ObjectId } = require("mongodb");
+const verifyJWT = require("../middlewares/verifyJWT"); 
 
 function doctorsRoutes(doctorsCollection) {
   const router = express.Router();
 
-  // GET ALL DOCTORS
   router.get("/", async (req, res) => {
     try {
       const result = await doctorsCollection.find().toArray();
@@ -13,11 +14,15 @@ function doctorsRoutes(doctorsCollection) {
     }
   });
 
-  // GET SINGLE DOCTOR BY ID
-  router.get("/:id", async (req, res) => {
+  router.get("/:id", verifyJWT, async (req, res) => {
     try {
       const id = req.params.id;
-      const result = await doctorsCollection.findOne({ id: id });
+      
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "Invalid Doctor ID format" });
+      }
+
+      const result = await doctorsCollection.findOne({ _id: new ObjectId(id) });
       
       if (!result) {
         return res.status(404).send({ message: "Doctor profile not found" });

@@ -1,95 +1,115 @@
 const express = require("express");
+const router = express.Router();
 const { ObjectId } = require("mongodb");
+const verifyJWT = require("../middlewares/verifyJWT");
 
-function bookingsRoutes(bookingsCollection) {
-  const router = express.Router();
+module.exports = function (bookingsCollection) {
 
-  // 1. CREATE/POST NEW BOOKING
-  router.post("/", async (req, res) => {
+  router.get("/search", verifyJWT, async (req, res) => {
+    try {
+      const doctorName = req.query.doctorName;
+      if (!doctorName) {
+        return res.status(400).send({ message: "Doctor name is required for search" });
+      }
+
+      const query = { doctorName: { $regex: doctorName, $options: "i" } };
+      const result = await bookingsCollection.find(query).toArray();
+      res.send(result);
+    } catch (error) {
+      res.status(500).send({ success: false, message: "Search failed" });
+    }
+  });
+
+
+  router.post("/", verifyJWT, async (req, res) => {
     try {
       const newBooking = req.body;
-      const result = await bookingsCollection.insertOne(newBooking);
+
       
-      if (result.insertedId) {
-        res.status(201).send({ success: true, message: "Booking successful!", insertedId: result.insertedId });
-      } else {
-        res.status(400).send({ success: false, message: "Failed to create booking" });
+      if (req.decoded && req.decoded.email !== newBooking.email) {
+        return res.status(403).send({
+          success: false,
+          message: "Forbidden access",
+        });
       }
+
+      const result = await bookingsCollection.insertOne(newBooking);
+
+      if (result.insertedId) {
+        res.status(201).send({
+          success: true,
+          message: "Appointment booked successfully!",
+          insertedId: result.insertedId,
+        });
+      } else {
+        res.status(400).send({
+          success: false,
+          message: "Failed to create booking",
+        });
+      }
+
     } catch (error) {
-      res.status(500).send({ success: false, message: "Internal server error", error: error.message });
+      res.status(500).send({
+        success: false,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
   });
 
-  // 2. GET BOOKINGS (Fix: Supports both 'email' and 'userEmail' fields)
-  router.get("/", async (req, res) => {
+  router.get("/", verifyJWT, async (req, res) => {
     try {
       const email = req.query.email;
-      let query = {};
-      
-      if (email) {
-
-        query = {
-          $or: [
-            { email: email },
-            { userEmail: email }
-          ]
-        };
+      if (!email) {
+        return res.status(400).send({ success: false, message: "Email query parameter is required" });
       }
-      
-      const result = await bookingsCollection.find(query).toArray();
-      res.status(200).send(result);
+
+      if (req.decoded && req.decoded.email !== email) {
+        return res.status(403).send({ success: false, message: "Forbidden access" });
+      }
+
+      const query = { email: email };
+      const bookings = await bookingsCollection.find(query).toArray();
+      res.send(bookings);
     } catch (error) {
-      res.status(500).send({ message: "Failed to fetch bookings", error: error.message });
+      res.status(500).send({ success: false, message: "Server error" });
     }
   });
 
-  // 3. UPDATE BOOKING DETAILS (PATCH)
-  router.patch("/:id", async (req, res) => {
+  router.patch("/:id", verifyJWT, async (req, res) => {
     try {
       const id = req.params.id;
-      const updatedData = req.body;
-      
       const filter = { _id: new ObjectId(id) };
+      const updatedBooking = req.body;
       const updateDoc = {
         $set: {
-          patientName: updatedData.patientName,
-          appointmentDate: updatedData.appointmentDate,
-          appointmentTime: updatedData.appointmentTime,
-          notes: updatedData.notes
+          patientName: updatedBooking.patientName,
+          appointmentDate: updatedBooking.appointmentDate,
+          appointmentTime: updatedBooking.appointmentTime,
+          notes: updatedBooking.notes,
         },
       };
-
       const result = await bookingsCollection.updateOne(filter, updateDoc);
-      
-      if (result.modifiedCount > 0 || result.matchedCount > 0) {
-        res.status(200).send({ success: true, message: "Booking updated successfully" });
-      } else {
-        res.status(404).send({ success: false, message: "Booking not found or no changes made" });
-      }
+      res.send({ success: true, result });
     } catch (error) {
-      res.status(500).send({ success: false, message: "Internal server error", error: error.message });
+      res.status(500).send({ success: false, message: "Update failed" });
     }
   });
 
-  // 4. DELETE/CANCEL BOOKING (DELETE)
-  router.delete("/:id", async (req, res) => {
+  router.delete("/:id", verifyJWT, async (req, res) => {
     try {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      
       const result = await bookingsCollection.deleteOne(query);
-      
-      if (result.deletedCount > 0) {
-        res.status(200).send({ success: true, message: "Booking deleted successfully" });
+      if (result.deletedCount === 1) {
+        res.send({ success: true, message: "Booking canceled successfully" });
       } else {
-        res.status(404).send({ success: false, message: "Booking not found" });
+        res.status(404).send({ success: false, message: "Booking not found" }); 
       }
     } catch (error) {
-      res.status(500).send({ success: false, message: "Internal server error", error: error.message });
+      res.status(500).send({ success: false, message: "Delete failed" });
     }
   });
 
   return router;
-}
-
-module.exports = bookingsRoutes;
+};
