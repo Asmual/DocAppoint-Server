@@ -1,7 +1,7 @@
 echo "# Assignment-9-Server" >> README.md
 git init
 git add .
-git commit -m "add doctors data, addscript migrate JSON data MongoDB"
+git commit -m "Doctors Routes Implemented"
 git branch -M main
 git remote add origin https://github.com/Asmual/Assignment-9-Server.git
 git push -u origin main

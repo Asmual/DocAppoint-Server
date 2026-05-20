@@ -1,10 +1,5 @@
 const express = require("express");
 
-/**
- * Initializes and configuration for doctor routes
- * @param {Object} doctorsCollection - MongoDB collection instance
- * @returns {Object} express router
- */
 function doctorsRoutes(doctorsCollection) {
   const router = express.Router();
 
