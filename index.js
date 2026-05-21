@@ -13,34 +13,33 @@ const doctorsRoutes = require("./routes/doctorsRoutes");
 const bookingsRoutes = require("./routes/bookingsRoutes");
 const cookieParser = require('cookie-parser');
 
-
 const app = express();
-
 const port = process.env.PORT || 5000;
 
 app.use(cookieParser());
-// MIDDLEWARES
-app.use(cors({
-    origin: "http://localhost:3000",
-    credentials: true
-}));
+
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "https://assignment-9-eight-drab.vercel.app"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
+};
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
 async function startServer() {
   try {
-    // DATABASE CONNECT
     await connectDB();
 
-    // DATABASE
     const database = client.db("DocAppoint");
 
-    // COLLECTIONS
     const doctorsCollection = database.collection("doctors");
-
     const bookingsCollection = database.collection("bookings");
 
-    // JWT API
     app.post("/jwt", async (req, res) => {
       try {
         const user = req.body;
@@ -64,7 +63,6 @@ async function startServer() {
       }
     });
 
-    // ROUTES
     app.use(
       "/api/doctors",
       doctorsRoutes(doctorsCollection)
@@ -75,12 +73,10 @@ async function startServer() {
       bookingsRoutes(bookingsCollection)
     );
 
-    // ROOT
     app.get("/", (req, res) => {
       res.send("DocAppoint Server Running...");
     });
 
-    // SERVER
     app.listen(port, () => {
       console.log(`✅ Server running on port ${port}`);
     });

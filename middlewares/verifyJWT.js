@@ -1,11 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 const verifyJWT = (req, res, next) => {
-   
     const sessionToken = req.cookies?.["better-auth.session_token"];
 
     if (sessionToken) {
-        
         return next();
     }
 
