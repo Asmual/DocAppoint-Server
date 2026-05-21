@@ -15,9 +15,9 @@ const connectDB = async () => {
 
     await client.db("admin").command({ ping: 1 });
 
-    console.log("✅ MongoDB Connected Successfully");
+    console.log("MongoDB Connected Successfully");
   } catch (error) {
-    console.log("❌ MongoDB Connection Error:", error);
+    console.log("MongoDB Connection Error:", error);
   }
 };
 

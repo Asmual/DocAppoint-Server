@@ -1,7 +1,8 @@
 echo "# Assignment-9-Server" >> README.md
 git init
 git add .
-git commit -m "Implement JWT-based authentication system"
+git commit -m "update backend config"
+JWT token in localStorage
 git branch -M main
 git remote add origin https://github.com/Asmual/Assignment-9-Server.git
 git push -u origin main

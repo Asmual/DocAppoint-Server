@@ -1,6 +1,6 @@
 const express = require("express");
+
 const { ObjectId } = require("mongodb");
-const verifyJWT = require("../middlewares/verifyJWT"); 
 
 function doctorsRoutes(doctorsCollection) {
   const router = express.Router();
@@ -8,29 +8,46 @@ function doctorsRoutes(doctorsCollection) {
   router.get("/", async (req, res) => {
     try {
       const result = await doctorsCollection.find().toArray();
+
       res.status(200).send(result);
+
     } catch (error) {
-      res.status(500).send({ message: "Failed to fetch doctors", error: error.message });
+      res.status(500).send({
+        success: false,
+        message: "Failed to fetch doctors",
+      });
     }
   });
 
-  router.get("/:id", verifyJWT, async (req, res) => {
+  router.get("/:id", async (req, res) => {
     try {
       const id = req.params.id;
-      
+
       if (!ObjectId.isValid(id)) {
-        return res.status(400).send({ message: "Invalid Doctor ID format" });
+        return res.status(400).send({
+          success: false,
+          message: "Invalid doctor id",
+        });
       }
 
-      const result = await doctorsCollection.findOne({ _id: new ObjectId(id) });
-      
+      const result = await doctorsCollection.findOne({
+        _id: new ObjectId(id),
+      });
+
       if (!result) {
-        return res.status(404).send({ message: "Doctor profile not found" });
+        return res.status(404).send({
+          success: false,
+          message: "Doctor profile not found",
+        });
       }
-      
+
       res.status(200).send(result);
+
     } catch (error) {
-      res.status(500).send({ message: "Failed to fetch doctor profile", error: error.message });
+      res.status(500).send({
+        success: false,
+        message: "Failed to fetch doctor profile",
+      });
     }
   });
 

@@ -5,6 +5,7 @@ const verifyJWT = require("../middlewares/verifyJWT");
 
 module.exports = function (bookingsCollection) {
 
+ 
   router.get("/search", verifyJWT, async (req, res) => {
     try {
       const doctorName = req.query.doctorName;
@@ -20,16 +21,16 @@ module.exports = function (bookingsCollection) {
     }
   });
 
-
+ 
   router.post("/", verifyJWT, async (req, res) => {
     try {
       const newBooking = req.body;
 
-      
-      if (req.decoded && req.decoded.email !== newBooking.email) {
+       
+      if (req.decoded && req.decoded.email && req.decoded.email !== newBooking.email) {
         return res.status(403).send({
           success: false,
-          message: "Forbidden access",
+          message: "Forbidden access: Email mismatch",
         });
       }
 
@@ -57,6 +58,7 @@ module.exports = function (bookingsCollection) {
     }
   });
 
+ 
   router.get("/", verifyJWT, async (req, res) => {
     try {
       const email = req.query.email;
@@ -64,7 +66,7 @@ module.exports = function (bookingsCollection) {
         return res.status(400).send({ success: false, message: "Email query parameter is required" });
       }
 
-      if (req.decoded && req.decoded.email !== email) {
+      if (req.decoded && req.decoded.email && req.decoded.email !== email) {
         return res.status(403).send({ success: false, message: "Forbidden access" });
       }
 
@@ -76,9 +78,14 @@ module.exports = function (bookingsCollection) {
     }
   });
 
+ 
   router.patch("/:id", verifyJWT, async (req, res) => {
     try {
       const id = req.params.id;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ success: false, message: "Invalid ID format" });
+      }
+      
       const filter = { _id: new ObjectId(id) };
       const updatedBooking = req.body;
       const updateDoc = {
@@ -96,9 +103,14 @@ module.exports = function (bookingsCollection) {
     }
   });
 
+ 
   router.delete("/:id", verifyJWT, async (req, res) => {
     try {
       const id = req.params.id;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ success: false, message: "Invalid ID format" });
+      }
+
       const query = { _id: new ObjectId(id) };
       const result = await bookingsCollection.deleteOne(query);
       if (result.deletedCount === 1) {
