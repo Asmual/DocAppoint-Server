@@ -1,17 +1,20 @@
 const express = require("express");
-
 const { ObjectId } = require("mongodb");
 
 function doctorsRoutes(doctorsCollection) {
+
   const router = express.Router();
 
+  // GET ALL DOCTORS
   router.get("/", async (req, res) => {
     try {
+
       const result = await doctorsCollection.find().toArray();
 
       res.status(200).send(result);
 
     } catch (error) {
+
       res.status(500).send({
         success: false,
         message: "Failed to fetch doctors",
@@ -19,8 +22,10 @@ function doctorsRoutes(doctorsCollection) {
     }
   });
 
+  // GET SINGLE DOCTOR
   router.get("/:id", async (req, res) => {
     try {
+
       const id = req.params.id;
 
       if (!ObjectId.isValid(id)) {
@@ -44,6 +49,7 @@ function doctorsRoutes(doctorsCollection) {
       res.status(200).send(result);
 
     } catch (error) {
+
       res.status(500).send({
         success: false,
         message: "Failed to fetch doctor profile",
