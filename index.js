@@ -21,7 +21,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://assignment-9-eight-drab.vercel.app",
+      "https://docappoint-eight-drab.vercel.app",
     ],
     credentials: true,
   })
